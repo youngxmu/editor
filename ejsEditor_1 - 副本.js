@@ -1,4 +1,4 @@
-;(function($){
+﻿;(function($){
     
     var config = {
         "theme" : "default"
@@ -681,9 +681,9 @@
     
     
     function applyStyle(_range, _tagNames, _style, _attribute){
+        
         var mark = new RangeMark();
         mark.createRangeMark(_range);
-
         _range.setStartAfter(mark.getStart());
         _range.setEndBefore(mark.getEnd());
         
@@ -849,6 +849,7 @@
     //获取第一个文本节点
     function getNextFirstTextNode(_node, _turnLeft){
         var attr = _turnLeft ? ["previousSibling","lastChild"] : ["nextSibling","firstChild"];
+        console.log(_node);
         var point = _node;   
         while(true){
             if(point[attr[0]] == null){
@@ -1228,8 +1229,6 @@
                 ,"markid" : "mark_"+ $.IDX.next()
             }));
             this.start = startOfragment.childNodes[0];
-
-
             
             var collapsed = true;
             if(!range.collapsed){
@@ -1242,13 +1241,11 @@
                 newRange.collapse();
                 newRange.insertNode(this.end);
             }
-
+            
             
             range.insertNode(this.start);
             
             range.setStartAfter(this.start);
-
-
             
             if(!collapsed){
                 range.setEndBefore(this.end);
@@ -1305,7 +1302,7 @@
     
     //清除格式
     function clearformat(_html){
-        // console.log('clearformat');
+        console.log('clearformat');
         return util.html.format(_html);
     }
 
@@ -1331,12 +1328,12 @@
     
     var commandMap = {
             source : function(){
+                
                 if(this.sourceIsDisplay){
                     this.sourceIsDisplay = false;
                     $.DomHelper.hide(this.getDom().childNodes[2]);
                     $.DomHelper.show(this.getDom().childNodes[1]);
-                    //this._conWin.document.body.innerHTML = this.getDom().childNodes[2].childNodes[0].value.replace(/((\r|\n)　　)|\n|\r|\t/g, '');//去掉用户格式化html的两个全角空格
-                    this._conWin.document.body.innerHTML = util.html.clearHtmlStyle(this.getDom().childNodes[2].childNodes[0].value);//去掉用户格式化html的两个全角空格
+                    this._conWin.document.body.innerHTML = this.getDom().childNodes[2].childNodes[0].value.replace(/\t/g, '');
                     commandMap.focus.call(this);
                 }else{
                     this.sourceIsDisplay = true;
@@ -1446,13 +1443,15 @@
                 }
             }
             ,insertImage : function(){
-                this.uploader.openFileSelector(this.uploadUrl, $.FunctionHelper.bind(this, uploadLocalImgReady), $.FunctionHelper.bind(this, uploadLocalImgDone), $.FunctionHelper.bind(this, uploadLocalImgProgress));
+                
+                
+                this.uploader.openFileSelector("/con/dx/info/uploadthumb", $.FunctionHelper.bind(this, uploadLocalImgReady), $.FunctionHelper.bind(this, uploadLocalImgDone), $.FunctionHelper.bind(this, uploadLocalImgProgress));
+                
             }
             ,clearformat : function(){
                 var result = clearformat(this.getValue());
                 $.logout(result);
                 this.setValue(result);
-                this.getDom().childNodes[2].childNodes[0].value = HTMLFormat(result);
             }
             
             ,link : function(_cmdName, _tagNames, _style, _attribute){
@@ -1544,7 +1543,6 @@
         this.setTop(!isNaN(_properties.top) ? parseInt(_properties.top) : 0);
         this.setWidth(!isNaN(_properties.width) ? parseInt(_properties.width) : 100);
         this.setHeight(!isNaN(_properties.height) ? parseInt(_properties.height) : 100); 
-        this.uploadUrl = _properties.uploadUrl || "";
         $.DomHelper.setAttribute(this.getDom(), {oid : this.getObjectId()});
         var innerPage = (($.Client.browser.isIE && $.Client.browser.version < 9) ? "" : "<!DOCTYPE html>") +
         "<html xmlns=\\\"http://www.w3.org/1999/xhtml\\\"  class=\\\"view\\\">" +
@@ -1628,7 +1626,6 @@
             $.EventListener.add(this._conWin.document, "mousedown", EJS.FunctionHelper.bindAsEvent(this, editorMousedown));
             this.selection =  rangy.getSelection(this._conWin);
             this._conWin.document.body.focus();
-
             return this;
         }
         ,setHeight : function(_height){
@@ -1666,7 +1663,7 @@
             //防止编辑器还没有加载成功时向其赋值
             window.setTimeout(function(){
                 // self._conWin.document.body.innerHTML = $.HtmlHelper.HTMLtoXML(_val);
-                self._conWin.document.body.innerHTML = clearformat(_val);
+                self._conWin.document.body.innerHTML = HTMLFormat(_val);
             }, 0);
             //this._conWin.document.body.innerHTML = $.HtmlHelper.HTMLtoXML(_val);
         }
@@ -1698,11 +1695,11 @@
 */
 var util = {};
 
-util.contains = function (item, arr) {
-    if (!item || !arr) {
+Array.prototype.contains = function (item) {
+    if (!item) {
         return false;
     }
-    return new RegExp("(^|,)" + item.toString() + "($|,)").test(arr);
+    return new RegExp("(^|,)" + item.toString() + "($|,)").test(this);
 };
 (function(P){
     var _this = null;
@@ -1710,13 +1707,12 @@ util.contains = function (item, arr) {
         /** 默认配置 */
         defaultConfig : {
             //,ignoreTags : ['table','img']//忽略标签
-            ignoreTags : ['a', 'img', 'b', 'strong','ul', 'ol', 'li','table','thead','th','tbody','tr','td'],//忽略属性'br', 'span', 'a', 'img', 'b', 'strong', 'i', 'u', 'font', 'p', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'hr',
+            ignoreTags : ['br', 'span', 'a', 'img', 'b', 'strong', 'i', 'u', 'font', 'p', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'hr','table','thead','th','tbody','tr','td'],//忽略属性
             ignoreAttrs : {
               img: ['src', 'alt', 'width', 'height', 'data-non-image'],
-              a: ['href', 'target']
-              // ,
-              // font: ['color'],
-              // code: ['class']
+              a: ['href', 'target'],
+              font: ['color'],
+              code: ['class']
             },
             ignoreStyles : {
               span: ['color'],
@@ -1735,22 +1731,16 @@ util.contains = function (item, arr) {
             if (_this._isEmptyNode(node)){//node 是空的或者 仅内容都为空格
                 var pNode = node.parentNode;
                 node.remove();
-                // if(_this._isEmptyNode(pNode))
-                //     pNode.remove();
-                _this._cleanNode(pNode);
+                // _this._cleanNode(pNode);
             }else{
                 if (node.nodeType == 3 || node.localName === null) {//如果是文本节点
                     return;
-                }
-
-                if(node.nodeType == 1 && node.localName == 'a'){//去除所有的a标签
-                    node.outerHTML = node.innerHTML;
                 }
               
                 var childNodes = [];
                 var length = 0;
                 var index = 0;
-                if (node.localName && util.contains(node.localName, _this.defaultConfig.ignoreTags)) {//不需要替换为p的标签
+                if (node.localName && _this.defaultConfig.ignoreTags.contains(node.localName)) {//不需要替换为p的标签
                     _this._cleanNodeAttrs(node);
                     childNodes = node.childNodes;
                     length = childNodes.length - 1;
@@ -1758,7 +1748,7 @@ util.contains = function (item, arr) {
                         _this._cleanNode(childNodes[index]);
                     }
 
-                }else{//默认将标签替换为p
+                }else{//默认讲标签替换为p
                     /** replace tags */
                     var p = document.createElement('p');
                     p.innerHTML = node.innerHTML;
@@ -1783,7 +1773,7 @@ util.contains = function (item, arr) {
             var length = attrs.length - 1;
             for (var i = length; i >= 0; i--) {
                 var attrNode = attrs[i];
-                if (node.localName && attrNode.localName && _this.defaultConfig.ignoreAttrs[node.localName] && util.contains(attrNode.localName, _this.defaultConfig.ignoreAttrs[node.localName])) {
+                if (node.localName && attrNode.localName && _this.defaultConfig.ignoreAttrs[node.localName] && _this.defaultConfig.ignoreAttrs[node.localName].contains([attrNode.localName])) {
                     continue;//保留node下的attr属性，如img的src，a标签的href等
                 }
                 node.attributes[i]   = '';
@@ -1798,19 +1788,18 @@ util.contains = function (item, arr) {
             if (node.nodeType == 8) {
                 return true;
             }
+            console.log(node.childNodes.length + ' ' + node.localName);
             if (node.childNodes.length > 0 || node.localName == 'img') {
                 return false;
             }
             var text = '';
-            if (node.nodeType == 1) {//it is not a text node
+            if (node.nodeType == 1) {//it is a text node
                 text = node.innerHTML;
             }else if (node.nodeType == 3) {//it is a text node
                 text = node.data;
-                var str = text.replace(/(　*)/m,'');
-                node.data = str;//delete blank @ line start
             }
 
-            text = text.replace(/\s|&nbsp;|　/g,'');//去掉空格之后，判断node内容是否全为空格
+            text = text.replace(/\s|&nbsp;/g,'');//去掉空格之后，判断node内容是否全为空格
             if(text === ''){
                 return true;
             }
@@ -1830,7 +1819,7 @@ util.contains = function (item, arr) {
                 text = node.data;
             }
 
-            text = text.replace(/\s|&nbsp;|　/g,'');//去掉空格之后，判断node内容是否全为空格
+            text = text.replace(/\s|&nbsp;/g,'');//去掉空格之后，判断node内容是否全为空格
             if(text === ''){
                 return true;
             }
@@ -1845,41 +1834,20 @@ util.contains = function (item, arr) {
             var childNodes = tempNode.childNodes;
             var length = childNodes.length - 1;
 
+            console.log(HTMLFormat(tempNode.innerHTML));
             for (var i = length; i >= 0; i--) {
                 _this._cleanNode(childNodes[i]);
             }
 
-            return tempNode.innerHTML;
-        },
-        clearHtmlStyle : function(html){
-            var index = 0;//当前行序号
-            var lastLength = 0;//上一行行首indent的长度
-            html = html.replace(/(.+)\n/mg,function(hit){//按行查找
-                index++;
-                var length = 0;
-                hit.replace(/( *)/m,function(subhit){//查找行首缩进
-                    length = subhit.length;
-                    // if (length > lastLength) {
-                    //     length = lastLength + 2;
-                    // }else if(length < lastLength){
-                    //     length = lastLength - 2;
-                    //     if (length < 0) {
-                    //       length = 0;
-                    //     }
-                    // }
+            console.log(HTMLFormat(tempNode.innerHTML));
 
-                    // lastLength = length;
-                    // console.log(subhit.length +' '+ length);
-                    // if (length > subhit.length) {
-                    //     length = subhit.length;
-                    // }
-                });
-                return hit.substring(length);//去除用于html展示的缩进
-            });
-            return html.replace(/[\n\r\t]/g, '');//去除换行和制表符
+            // console.log('use time:' + (new Date().getTime() - start) + 'ms');
+
+            return tempNode.innerHTML;
         }
     };
 })(util);
+
 
 
 /** html格式化 */
@@ -1916,7 +1884,7 @@ var HTMLFormat = (function() {
             };
  
             this.get_content = function() {
-                var chara = '';
+                var char = '';
                 var content = [];
                 var space = false;
                 while (this.input.charAt(this.pos) !== '<') {
@@ -1924,12 +1892,12 @@ var HTMLFormat = (function() {
                         return content.length ? content.join('') : ['', 'TK_EOF'];
                     }
  
-                    chara = this.input.charAt(this.pos);
+                    char = this.input.charAt(this.pos);
                     this.pos++;
                     this.line_char_count++;
  
  
-                    if (this.Utils.in_array(chara, this.Utils.whitespace)) {
+                    if (this.Utils.in_array(char, this.Utils.whitespace)) {
                         if (content.length) {
                             space = true;
                         }
@@ -1948,13 +1916,13 @@ var HTMLFormat = (function() {
                         }
                         space = false;
                     }
-                    content.push(chara);
+                    content.push(char);
                 }
                 return content.length ? content.join('') : '';
             };
  
             this.get_script = function() {
-                var chara = '';
+                var char = '';
                 var content = [];
                 var reg_match = new RegExp('\<\/script' + '\>', 'igm');
                 reg_match.lastIndex = this.pos;
@@ -1965,11 +1933,11 @@ var HTMLFormat = (function() {
                         return content.length ? content.join('') : ['', 'TK_EOF'];
                     }
  
-                    chara = this.input.charAt(this.pos);
+                    char = this.input.charAt(this.pos);
                     this.pos++;
  
  
-                    content.push(chara);
+                    content.push(char);
                 }
                 return content.length ? content.join('') : '';
             };
@@ -2010,7 +1978,7 @@ var HTMLFormat = (function() {
             };
  
             this.get_tag = function() {
-                var chara = '';
+                var char = '';
                 var content = [];
                 var space = false;
  
@@ -2019,28 +1987,28 @@ var HTMLFormat = (function() {
                         return content.length ? content.join('') : ['', 'TK_EOF'];
                     }
  
-                    chara = this.input.charAt(this.pos);
+                    char = this.input.charAt(this.pos);
                     this.pos++;
                     this.line_char_count++;
  
-                    if (this.Utils.in_array(chara, this.Utils.whitespace)) {
+                    if (this.Utils.in_array(char, this.Utils.whitespace)) {
                         space = true;
                         this.line_char_count--;
                         continue;
                     }
  
-                    if (chara === "'" || chara === '"') {
+                    if (char === "'" || char === '"') {
                         if (!content[1] || content[1] !== '!') {
-                            chara += this.get_unformatted(chara);
+                            char += this.get_unformatted(char);
                             space = true;
                         }
                     }
  
-                    if (chara === '=') {
+                    if (char === '=') {
                         space = false;
                     }
  
-                    if (content.length && content[content.length - 1] !== '=' && chara !== '>' && space) {
+                    if (content.length && content[content.length - 1] !== '=' && char !== '>' && space) {
                         if (this.line_char_count >= this.max_char) {
                             this.print_newline(false, content);
                             this.line_char_count = 0;
@@ -2050,8 +2018,8 @@ var HTMLFormat = (function() {
                         }
                         space = false;
                     }
-                    content.push(chara);
-                } while (chara !== '>');
+                    content.push(char);
+                } while (char !== '>');
  
                 var tag_complete = content.join('');
                 var tag_index;
@@ -2108,19 +2076,19 @@ var HTMLFormat = (function() {
                 if (orig_tag && orig_tag.indexOf(delimiter) != -1) {
                     return '';
                 }
-                var chara = '';
+                var char = '';
                 var content = '';
                 var space = true;
                 do {
-                    chara = this.input.charAt(this.pos);
+                    char = this.input.charAt(this.pos);
                     this.pos++;
  
-                    if (this.Utils.in_array(chara, this.Utils.whitespace)) {
+                    if (this.Utils.in_array(char, this.Utils.whitespace)) {
                         if (!space) {
                             this.line_char_count--;
                             continue;
                         }
-                        if (chara === '\n' || chara === '\r') {
+                        if (char === '\n' || char === '\r') {
                             content += '\n';
                             for (var i = 0; i < this.indent_level; i++) {
                                 content += this.indent_string;
@@ -2130,7 +2098,7 @@ var HTMLFormat = (function() {
                             continue;
                         }
                     }
-                    content += chara;
+                    content += char;
                     this.line_char_count++;
                     space = true;
                 } while (content.indexOf(delimiter) == -1);
@@ -2271,7 +2239,7 @@ var HTMLFormat = (function() {
             dataHolders[name] = $2;
             return $1 + name + $3;
         });
-        data = style_html(data, 1, '    ', 0x10000000);//　　|
+        data = style_html(data, 1, '\t', 0x10000000);
         data = data.replace(new RegExp(dataHolder + '[0-9]+', 'g'), function($0) {
             return dataHolders[$0];
         });
